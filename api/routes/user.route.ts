@@ -2,8 +2,8 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../env";
-import { getRepository } from "typeorm";
 import { User } from "../entities/user.entity";
+import { dataSource } from "../../data-source";
 const router = express.Router()
 
 router.post("/register",(req,res)=>{
@@ -12,7 +12,7 @@ router.post("/register",(req,res)=>{
     user.name = req.body.name;
     user.password = bcrypt.hashSync(req.body.password,10);
     user.email = req.body.email;
-    let userRepository = getRepository(User);
+    let userRepository = dataSource.getRepository(User);
     userRepository.save(user).then(()=>{
         res.send("User saved");
     }).catch(error=>{
@@ -21,7 +21,7 @@ router.post("/register",(req,res)=>{
 })
 
 router.post("/login", async (req, res) => {
-    let userRepository = getRepository(User);
+    let userRepository = dataSource.getRepository(User);
     let user = await userRepository.findOneBy({ email: req.body.email });
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
         const token = jwt.sign({ id: user.id }, env.JWT_SECRET, {expiresIn: "1h"});

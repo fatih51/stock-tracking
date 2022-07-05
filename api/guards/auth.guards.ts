@@ -1,6 +1,9 @@
-import express, { json } from "express";
-import jwt from "jsonwebtoken";
+import express from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../../env";
+import { getRepository } from "typeorm";
+import { User } from "../entities/user.entity";
+import { dataSource } from "../../data-source";
 
 
 const AuthGuard = (req: express.Request, res: express.Response, next:express.NextFunction) => {
@@ -12,7 +15,19 @@ const AuthGuard = (req: express.Request, res: express.Response, next:express.Nex
                     message: "Invalid token"
                 });
             } else {
-                next();
+                let verified_token = jwt.decode(token) as JwtPayload;
+                if(verified_token){
+                    const userRepository = dataSource.getRepository(User);
+                    userRepository.findOneBy({ id:verified_token.id as number }).then(user => {
+                        if (user) {
+                            next();
+                        } else {
+                            res.status(401).json({
+                                message: "Invalid token"
+                            });
+                        }
+                    })
+                }
             }
         });
     }
