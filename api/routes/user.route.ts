@@ -7,7 +7,6 @@ import { dataSource } from "../../data-source";
 const router = express.Router()
 
 router.post("/register",(req,res)=>{
-    console.log("adsadas")
     let user = new User();
     user.name = req.body.name;
     user.password = bcrypt.hashSync(req.body.password,10);
